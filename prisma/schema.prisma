@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum InventoryTransactionType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  RETURN
+  LOSS
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  STOCK_CHANGE
+  ORDER_STATUS_CHANGE
+}
+
+model User {
+  id                    String                 @id @default(cuid())
+  name                  String?
+  email                 String                 @unique
+  passwordHash          String
+  role                  UserRole               @default(ADMIN)
+  isActive              Boolean                @default(true)
+  lastLoginAt           DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  auditLogs             AuditLog[]
+  inventoryTransactions InventoryTransaction[]
+
+  @@index([email])
+}
+
+model Product {
+  id                 String                 @id @default(cuid())
+  name               String
+  slug               String                 @unique
+  description        String
+  price              Decimal                @db.Decimal(10, 2)
+  compareAtPrice     Decimal?               @db.Decimal(10, 2)
+  sku                String?                @unique
+  stock              Int                    @default(0)
+  lowStockThreshold  Int                    @default(5)
+  isActive           Boolean                @default(true)
+  isFeatured         Boolean                @default(false)
+  isNew              Boolean                @default(false)
+  videoUrl           String?
+  categoryId         String
+  brandId            String?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  deletedAt          DateTime?
+  category           Category               @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  brand              Brand?                 @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  images             ProductImage[]
+  orderItems         OrderItem[]
+  inventoryHistory   InventoryTransaction[]
+
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([isActive, isFeatured])
+  @@index([slug])
+}
+
+model ProductImage {
+  id          String   @id @default(cuid())
+  productId   String
+  url         String
+  publicId    String
+  altText     String?
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, position])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  imagePublicId String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+
+  @@index([isActive])
+}
+
+model Brand {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  imagePublicId String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+
+  @@index([isActive])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  customerName    String
+  customerPhone   String
+  customerEmail   String?
+  customerAddress String?
+  status          OrderStatus @default(PENDING)
+  subtotal        Decimal     @db.Decimal(10, 2)
+  discount        Decimal     @default(0) @db.Decimal(10, 2)
+  total           Decimal     @db.Decimal(10, 2)
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  items           OrderItem[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id                   String  @id @default(cuid())
+  orderId              String
+  productId            String?
+  productNameSnapshot  String
+  productPriceSnapshot Decimal @db.Decimal(10, 2)
+  quantity             Int
+  total                Decimal @db.Decimal(10, 2)
+  order                Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product              Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model InventoryTransaction {
+  id            String                   @id @default(cuid())
+  productId     String
+  type          InventoryTransactionType
+  quantity      Int
+  previousStock Int
+  newStock      Int
+  reason        String
+  notes         String?
+  createdById   String
+  createdAt     DateTime                 @default(now())
+  product       Product                  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  createdBy     User                     @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([productId])
+  @@index([createdById])
+  @@index([type, createdAt])
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  userId      String?
+  entity      String
+  entityId    String?
+  action      AuditAction
+  oldData     Json?
+  newData     Json?
+  description String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([action, createdAt])
+}
+
+model SiteSettings {
+  id                     String   @id @default(cuid())
+  storeName              String   @default("Cynthia Makes")
+  whatsapp               String
+  instagram              String?
+  email                  String?
+  address                String?
+  businessHours          String?
+  homeHeroTitle          String
+  homeHeroDescription    String
+  seoTitle               String
+  seoDescription         String
+  heroBannerUrl          String?
+  heroBannerPublicId     String?
+  whatsappDefaultMessage String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
