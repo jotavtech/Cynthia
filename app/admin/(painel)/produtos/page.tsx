@@ -14,11 +14,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DeleteProductButton } from "@/components/admin/delete-product-button";
+import { Pagination } from "@/components/admin/pagination";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminProductsPage() {
-  const products = await getAdminProducts();
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page } = await searchParams;
+  const { items: products, total, page: currentPage, totalPages } =
+    await getAdminProducts(Number(page) || 1);
 
   return (
     <div className="space-y-6">
@@ -26,7 +33,7 @@ export default async function AdminProductsPage() {
         <div>
           <h1 className="text-2xl font-semibold text-stone-950">Produtos</h1>
           <p className="mt-1 text-sm text-stone-500">
-            {products.length} produto(s) cadastrado(s).
+            {total} produto(s) cadastrado(s).
           </p>
         </div>
         <Link
@@ -102,6 +109,12 @@ export default async function AdminProductsPage() {
           </Table>
         </div>
       )}
+
+      <Pagination
+        page={currentPage}
+        totalPages={totalPages}
+        basePath="/admin/produtos"
+      />
     </div>
   );
 }

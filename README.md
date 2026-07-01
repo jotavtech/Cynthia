@@ -109,7 +109,7 @@ scripts/
 5. [x] Carrinho persistente e finalizacao pelo WhatsApp.
 6. [x] Estoque, vendas e auditoria (pedidos persistidos no checkout, painel de pedidos com status e baixa de estoque, movimentacoes de estoque com historico e auditoria).
 7. [ ] Deploy em VPS Hostinger (guia pronto em `docs/DEPLOY.md`).
-8. [ ] QA e polimento.
+8. [~] QA e polimento (rate limit no login, paginacao no admin e testes; QA com banco real pendente).
 
 ## Autenticacao
 

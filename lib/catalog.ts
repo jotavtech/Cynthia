@@ -61,16 +61,30 @@ export async function getProductBySlug(slug: string) {
   });
 }
 
-export async function getAdminProducts() {
-  return prisma.product.findMany({
-    where: { deletedAt: null },
-    select: {
-      ...productListSelect,
-      lowStockThreshold: true,
-      updatedAt: true,
-    },
-    orderBy: { updatedAt: "desc" },
-  });
+export async function getAdminProducts(page = 1, perPage = 15) {
+  const currentPage = Math.max(1, page);
+  const [items, total] = await Promise.all([
+    prisma.product.findMany({
+      where: { deletedAt: null },
+      select: {
+        ...productListSelect,
+        lowStockThreshold: true,
+        updatedAt: true,
+      },
+      orderBy: { updatedAt: "desc" },
+      skip: (currentPage - 1) * perPage,
+      take: perPage,
+    }),
+    prisma.product.count({ where: { deletedAt: null } }),
+  ]);
+
+  return {
+    items,
+    total,
+    page: currentPage,
+    perPage,
+    totalPages: Math.max(1, Math.ceil(total / perPage)),
+  };
 }
 
 export async function getProductForEdit(id: string) {

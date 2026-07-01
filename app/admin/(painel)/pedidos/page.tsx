@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Pagination } from "@/components/admin/pagination";
 
 export const dynamic = "force-dynamic";
 
@@ -23,15 +24,21 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeStyle: "short",
 });
 
-export default async function AdminOrdersPage() {
-  const orders = await getAdminOrders();
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page } = await searchParams;
+  const { items: orders, total, page: currentPage, totalPages } =
+    await getAdminOrders(Number(page) || 1);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-stone-950">Pedidos</h1>
         <p className="mt-1 text-sm text-stone-500">
-          {orders.length} pedido(s) registrados.
+          {total} pedido(s) registrados.
         </p>
       </div>
 
@@ -89,6 +96,12 @@ export default async function AdminOrdersPage() {
           </Table>
         </div>
       )}
+
+      <Pagination
+        page={currentPage}
+        totalPages={totalPages}
+        basePath="/admin/pedidos"
+      />
     </div>
   );
 }
