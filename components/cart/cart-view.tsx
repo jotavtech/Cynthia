@@ -1,15 +1,25 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 
 import { useCart } from "@/components/cart/cart-context";
-import { buildWhatsappCartMessage, buildWhatsappUrl } from "@/lib/whatsapp";
+import { createOrderAction } from "@/lib/actions/orders";
 import { formatMoney } from "@/lib/money";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
-export function CartView({ whatsapp }: { whatsapp: string }) {
+export function CartView() {
   const { items, totalPrice, updateQuantity, removeItem, clear } = useCart();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [notes, setNotes] = useState("");
 
   if (items.length === 0) {
     return (
@@ -29,19 +39,28 @@ export function CartView({ whatsapp }: { whatsapp: string }) {
   }
 
   function checkout() {
-    const message = buildWhatsappCartMessage(
-      items.map((item) => ({
-        name: item.name,
-        quantity: item.quantity,
-        unitPrice: item.price,
-      })),
-    );
-    const url = buildWhatsappUrl(whatsapp, message);
-    window.open(url, "_blank", "noopener,noreferrer");
+    setError(null);
+    startTransition(async () => {
+      const result = await createOrderAction({
+        customerName: name,
+        customerPhone: phone,
+        customerAddress: address,
+        notes,
+        items: items.map((item) => ({ id: item.id, quantity: item.quantity })),
+      });
+
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+
+      clear();
+      window.open(result.whatsappUrl, "_blank", "noopener,noreferrer");
+    });
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
       <div className="space-y-3">
         {items.map((item) => (
           <div
@@ -108,13 +127,63 @@ export function CartView({ whatsapp }: { whatsapp: string }) {
             {formatMoney(totalPrice)}
           </span>
         </div>
-        <p className="text-sm text-stone-500">
-          A finalizacao acontece pelo WhatsApp. Voce confirma os detalhes do
-          pedido diretamente com a loja.
-        </p>
-        <Button type="button" className="w-full" onClick={checkout}>
-          Finalizar no WhatsApp
+
+        <div className="space-y-3 border-t pt-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="customer-name">Nome</Label>
+            <Input
+              id="customer-name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="customer-phone">Telefone (WhatsApp)</Label>
+            <Input
+              id="customer-phone"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="(11) 99999-9999"
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="customer-address">Endereco de entrega (opcional)</Label>
+            <Input
+              id="customer-address"
+              value={address}
+              onChange={(event) => setAddress(event.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="customer-notes">Observacoes (opcional)</Label>
+            <Textarea
+              id="customer-notes"
+              rows={2}
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+            />
+          </div>
+        </div>
+
+        {error ? (
+          <p role="alert" className="text-sm text-red-600">
+            {error}
+          </p>
+        ) : null}
+
+        <Button
+          type="button"
+          className="w-full"
+          onClick={checkout}
+          disabled={isPending}
+        >
+          {isPending ? "Gerando pedido..." : "Finalizar no WhatsApp"}
         </Button>
+        <p className="text-xs text-stone-500">
+          O pedido e registrado e a conversa abre no WhatsApp para confirmacao.
+        </p>
       </aside>
     </div>
   );

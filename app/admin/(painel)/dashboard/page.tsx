@@ -8,15 +8,17 @@ import { buttonVariants } from "@/components/ui/button";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [products, categories, brands, orders, lowStock] = await Promise.all([
-    prisma.product.count({ where: { deletedAt: null } }),
-    prisma.category.count(),
-    prisma.brand.count(),
-    prisma.order.count(),
-    prisma.product.count({
-      where: { deletedAt: null, isActive: true, stock: { lte: 5 } },
-    }),
-  ]);
+  const [products, categories, brands, orders, pendingOrders, lowStock] =
+    await Promise.all([
+      prisma.product.count({ where: { deletedAt: null } }),
+      prisma.category.count(),
+      prisma.brand.count(),
+      prisma.order.count(),
+      prisma.order.count({ where: { status: "PENDING" } }),
+      prisma.product.count({
+        where: { deletedAt: null, isActive: true, stock: { lte: 5 } },
+      }),
+    ]);
 
   const stats = [
     { label: "Produtos", value: products, icon: Package },
@@ -60,6 +62,22 @@ export default async function DashboardPage() {
           );
         })}
       </div>
+
+      {pendingOrders > 0 ? (
+        <Card className="border-stone-200">
+          <CardContent className="flex items-center justify-between gap-3 p-5">
+            <p className="text-sm font-medium text-stone-700">
+              {pendingOrders} pedido(s) pendente(s) aguardando confirmacao.
+            </p>
+            <Link
+              href="/admin/pedidos"
+              className={buttonVariants({ size: "sm", variant: "outline" })}
+            >
+              Ver pedidos
+            </Link>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {lowStock > 0 ? (
         <Card className="border-amber-200 bg-amber-50">

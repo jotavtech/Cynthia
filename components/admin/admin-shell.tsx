@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Boxes,
   LayoutDashboard,
   LogOut,
   Package,
   Settings,
+  ShoppingCart,
   Store,
   Tags,
 } from "lucide-react";
@@ -17,6 +19,8 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/produtos", label: "Produtos", icon: Package },
+  { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
+  { href: "/admin/estoque", label: "Estoque", icon: Boxes },
   { href: "/admin/categorias", label: "Categorias", icon: Tags },
   { href: "/admin/marcas", label: "Marcas", icon: Store },
   { href: "/admin/configuracoes", label: "Configuracoes", icon: Settings },

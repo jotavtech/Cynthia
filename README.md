@@ -7,7 +7,8 @@ Este repositorio nao reaproveita codigo do projeto antigo. Alem da fundacao
 (Fase 1), ja estao implementados: autenticacao admin com sessao assinada,
 painel administrativo com CRUD de produtos, categorias, marcas e configuracoes,
 upload de imagens no Cloudinary, site publico conectado ao banco, carrinho
-persistente e finalizacao pelo WhatsApp.
+persistente e finalizacao pelo WhatsApp, alem de pedidos, controle de estoque
+com historico e auditoria de acoes.
 
 ## Stack
 
@@ -106,7 +107,7 @@ scripts/
 3. [x] Admin base com CRUD (produtos, categorias, marcas, configuracoes) e upload no Cloudinary.
 4. [x] Site publico conectado a dados reais (home, catalogo com busca/filtro, pagina de produto).
 5. [x] Carrinho persistente e finalizacao pelo WhatsApp.
-6. [ ] Estoque, vendas e auditoria (auditoria basica ja registrada; pedidos e movimentacoes pendentes).
+6. [x] Estoque, vendas e auditoria (pedidos persistidos no checkout, painel de pedidos com status e baixa de estoque, movimentacoes de estoque com historico e auditoria).
 7. [ ] Deploy em VPS Hostinger (guia pronto em `docs/DEPLOY.md`).
 8. [ ] QA e polimento.
 
