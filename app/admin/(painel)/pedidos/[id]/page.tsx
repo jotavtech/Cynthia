@@ -3,15 +3,13 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { getOrderById } from "@/lib/orders";
-import { updateOrderStatusAction } from "@/lib/actions/orders";
 import { formatMoney } from "@/lib/money";
 import {
   orderCode,
   orderStatusClasses,
   orderStatusLabels,
-  orderStatusOrder,
 } from "@/lib/order-status";
-import { Button } from "@/components/ui/button";
+import { OrderStatusForm } from "@/components/admin/order-status-form";
 import {
   Table,
   TableBody,
@@ -128,36 +126,7 @@ export default async function OrderDetailPage({
         </span>
       </div>
 
-      <form
-        action={updateOrderStatusAction}
-        className="flex flex-wrap items-end gap-3 rounded-lg border bg-white p-6"
-      >
-        <input type="hidden" name="orderId" value={order.id} />
-        <div className="space-y-1.5">
-          <label
-            htmlFor="status"
-            className="block text-sm font-medium text-stone-700"
-          >
-            Atualizar status
-          </label>
-          <select
-            id="status"
-            name="status"
-            defaultValue={order.status}
-            className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            {orderStatusOrder.map((status) => (
-              <option key={status} value={status}>
-                {orderStatusLabels[status]}
-              </option>
-            ))}
-          </select>
-        </div>
-        <Button type="submit">Salvar status</Button>
-        <p className="w-full text-xs text-stone-500">
-          Confirmar um pedido pendente da baixa automatica no estoque.
-        </p>
-      </form>
+      <OrderStatusForm orderId={order.id} currentStatus={order.status} />
     </div>
   );
 }

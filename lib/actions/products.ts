@@ -7,7 +7,7 @@ import { requireAdmin } from "@/lib/auth/dal";
 import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/validations/catalog";
 import { createSlug } from "@/lib/slug";
-import { uploadImage } from "@/lib/cloudinary";
+import { deleteImage, uploadImage } from "@/lib/cloudinary";
 import { recordAudit } from "@/lib/audit";
 
 export type ProductFormState = {
@@ -125,12 +125,16 @@ export async function saveProductAction(
   }
 
   if (uploadedUrl && uploadedPublicId && productId) {
+    // Adiciona a imagem no fim da lista para nao colidir com posicoes ja usadas.
+    const existingImages = await prisma.productImage.count({
+      where: { productId },
+    });
     await prisma.productImage.create({
       data: {
         productId,
         url: uploadedUrl,
         publicId: uploadedPublicId,
-        position: 0,
+        position: existingImages,
       },
     });
   }
@@ -148,11 +152,26 @@ export async function deleteProductAction(formData: FormData): Promise<void> {
     return;
   }
 
-  // Soft delete: preserva historico de pedidos e estoque.
+  // Soft delete: preserva historico de pedidos e estoque (o snapshot do item do
+  // pedido guarda nome e preco, entao nao precisamos manter as imagens).
   await prisma.product.update({
     where: { id },
     data: { isActive: false, deletedAt: new Date() },
   });
+
+  // Remove as imagens do Cloudinary e os registros locais para nao acumular
+  // assets orfaos na conta. Best-effort: falhas nao derrubam a operacao.
+  const images = await prisma.productImage.findMany({
+    where: { productId: id },
+    select: { id: true, publicId: true },
+  });
+
+  if (images.length > 0) {
+    await Promise.allSettled(
+      images.map((image) => deleteImage(image.publicId)),
+    );
+    await prisma.productImage.deleteMany({ where: { productId: id } });
+  }
 
   await recordAudit({
     userId: session.userId,

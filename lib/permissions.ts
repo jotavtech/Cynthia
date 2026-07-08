@@ -1,5 +1,3 @@
-import type { UserRole } from "@/generated/prisma/enums";
-
-export function canAccessAdmin(role: UserRole | undefined) {
+export function canAccessAdmin(role: string | undefined) {
   return role === "ADMIN";
 }

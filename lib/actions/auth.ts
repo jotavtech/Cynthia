@@ -1,6 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { compare } from "bcryptjs";
 import { z } from "zod";
@@ -8,6 +7,7 @@ import { z } from "zod";
 import { createSession, deleteSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { rateLimit, resetRateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/request-ip";
 
 const loginSchema = z.object({
   email: z.string().email("Informe um email valido."),
@@ -23,11 +23,7 @@ export async function loginAction(
   formData: FormData,
 ): Promise<LoginState> {
   // Rate limit por IP para mitigar brute force (5 tentativas por minuto).
-  const requestHeaders = await headers();
-  const ip =
-    requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    requestHeaders.get("x-real-ip") ||
-    "unknown";
+  const ip = await getClientIp();
   const rateKey = `login:${ip}`;
   const limit = rateLimit(rateKey, 5, 60_000);
 

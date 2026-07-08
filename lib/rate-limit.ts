@@ -6,6 +6,26 @@ type Entry = { count: number; resetAt: number };
 // VPS). Para multiplas instancias, trocar por Redis/banco.
 const store = new Map<string, Entry>();
 
+// Intervalo minimo entre varreduras de limpeza de chaves expiradas.
+const SWEEP_INTERVAL_MS = 5 * 60_000;
+let lastSweepAt = 0;
+
+/**
+ * Remove entradas ja expiradas. Sem isso o Map cresceria de forma ilimitada,
+ * acumulando uma chave por IP visto (vazamento de memoria em processo longo).
+ */
+function sweepExpired(now: number): void {
+  if (now - lastSweepAt < SWEEP_INTERVAL_MS) {
+    return;
+  }
+  lastSweepAt = now;
+  for (const [key, entry] of store) {
+    if (entry.resetAt <= now) {
+      store.delete(key);
+    }
+  }
+}
+
 export type RateLimitResult = {
   allowed: boolean;
   remaining: number;
@@ -18,6 +38,7 @@ export function rateLimit(
   windowMs: number,
 ): RateLimitResult {
   const now = Date.now();
+  sweepExpired(now);
   const entry = store.get(key);
 
   if (!entry || entry.resetAt <= now) {

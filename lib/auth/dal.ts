@@ -19,7 +19,7 @@ export const getSession = cache(async (): Promise<SessionPayload | null> => {
 export const requireAdmin = cache(async (): Promise<SessionPayload> => {
   const session = await getSession();
 
-  if (!session || !canAccessAdmin(session.role as "ADMIN")) {
+  if (!session || !canAccessAdmin(session.role)) {
     redirect("/admin/login");
   }
 
