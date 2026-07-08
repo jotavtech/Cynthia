@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { CartProvider } from "@/components/cart/cart-context";
+import { siteUrl } from "@/lib/site-url";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cynthiamakes.com.br"),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Cynthia Makes | Maquiagem e beleza",
     template: "%s | Cynthia Makes",

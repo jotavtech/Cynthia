@@ -50,6 +50,15 @@ export async function getFeaturedProducts(limit = 3) {
   });
 }
 
+/** Lightweight active product list (slug + updatedAt) for the sitemap. */
+export async function getSitemapProducts() {
+  return prisma.product.findMany({
+    where: { isActive: true, deletedAt: null },
+    select: { slug: true, updatedAt: true },
+    orderBy: { updatedAt: "desc" },
+  });
+}
+
 export async function getProductBySlug(slug: string) {
   return prisma.product.findFirst({
     where: { slug, isActive: true, deletedAt: null },
