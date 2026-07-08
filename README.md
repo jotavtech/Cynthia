@@ -3,9 +3,12 @@
 Reconstrucao do Cynthia Makes do zero: loja/catalogo de maquiagem com site
 publico, carrinho com finalizacao via WhatsApp e painel administrativo seguro.
 
-Este repositorio nao reaproveita codigo do projeto antigo. A base atual cobre a
-Fase 1: setup, arquitetura inicial, Prisma, documentacao, `.env.example`, seed
-e primeira base visual.
+Este repositorio nao reaproveita codigo do projeto antigo. Alem da fundacao
+(Fase 1), ja estao implementados: autenticacao admin com sessao assinada,
+painel administrativo com CRUD de produtos, categorias, marcas e configuracoes,
+upload de imagens no Cloudinary, site publico conectado ao banco, carrinho
+persistente e finalizacao pelo WhatsApp, alem de pedidos, controle de estoque
+com historico e auditoria de acoes.
 
 ## Stack
 
@@ -63,6 +66,7 @@ npm run build
 npm run start
 npm run lint
 npm run typecheck
+npm run test
 npm run db:generate
 npm run db:migrate
 npm run db:deploy
@@ -98,14 +102,21 @@ scripts/
 
 ## Fases
 
-1. Setup, Prisma, docs, estrutura e base visual.
-2. Banco e autenticacao admin.
-3. Admin base com CRUD e upload.
-4. Site publico conectado a dados reais.
-5. Carrinho e WhatsApp.
-6. Estoque, vendas e auditoria.
-7. Deploy em VPS Hostinger.
-8. QA e polimento.
+1. [x] Setup, Prisma, docs, estrutura e base visual.
+2. [x] Banco e autenticacao admin (sessao assinada com `jose`, protecao de rotas via `proxy.ts`).
+3. [x] Admin base com CRUD (produtos, categorias, marcas, configuracoes) e upload no Cloudinary.
+4. [x] Site publico conectado a dados reais (home, catalogo com busca/filtro, pagina de produto).
+5. [x] Carrinho persistente e finalizacao pelo WhatsApp.
+6. [x] Estoque, vendas e auditoria (pedidos persistidos no checkout, painel de pedidos com status e baixa de estoque, movimentacoes de estoque com historico e auditoria).
+7. [ ] Deploy em VPS Hostinger (guia pronto em `docs/DEPLOY.md`).
+8. [~] QA e polimento (rate limit no login, paginacao no admin e testes; QA com banco real pendente).
+
+## Autenticacao
+
+O login admin usa hash `bcrypt` e uma sessao stateless assinada (JWT HS256 via
+`jose`) guardada em cookie `HttpOnly`. As rotas `/admin` sao pre-filtradas em
+`proxy.ts` e revalidadas no Data Access Layer (`lib/auth/dal.ts`) proximo aos
+dados. O segredo vem de `NEXTAUTH_SECRET` (minimo de 32 caracteres).
 
 ## Seguranca
 

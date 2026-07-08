@@ -35,7 +35,7 @@ Nunca commite `.env`.
 10. Rode `npm run build`.
 11. Suba com PM2 ou Docker Compose.
 12. Configure Nginx como reverse proxy.
-13. Configure SSL com Certbot.
+13. Configure SSL com Let's Encrypt (Certbot).
 14. Teste dominio, login, catalogo, carrinho e upload.
 15. Configure backup com `scripts/backup-db.sh`.
 
@@ -65,11 +65,89 @@ server {
 }
 ```
 
-## SSL
+## SSL com Let's Encrypt (Certbot)
+
+O certificado SSL de producao usa o **Let's Encrypt**, uma autoridade
+certificadora gratuita e automatizada. O cliente oficial na VPS e o **Certbot**,
+que emite, instala e renova o certificado direto no Nginx.
+
+### 1. Pre-requisitos
+
+- O dominio (`seu-dominio.com.br` e `www.seu-dominio.com.br`) deve apontar para
+  o IP da VPS via registro DNS `A`/`AAAA` antes de emitir o certificado.
+- As portas `80` e `443` devem estar abertas no firewall.
 
 ```bash
-sudo certbot --nginx -d seu-dominio.com.br -d www.seu-dominio.com.br
+sudo ufw allow "Nginx Full"
 ```
+
+### 2. Instalar o Certbot
+
+```bash
+sudo apt update
+sudo apt install -y certbot python3-certbot-nginx
+```
+
+### 3. Emitir o certificado
+
+Com o bloco Nginx da secao anterior ja ativo (respondendo em HTTP na porta 80),
+rode:
+
+```bash
+sudo certbot --nginx \
+  -d seu-dominio.com.br \
+  -d www.seu-dominio.com.br \
+  --redirect \
+  --agree-tos \
+  -m seu-email@dominio.com.br \
+  --no-eff-email
+```
+
+O que cada opcao faz:
+
+- `--nginx`: usa o desafio HTTP-01 e edita o bloco Nginx automaticamente.
+- `--redirect`: adiciona o redirecionamento permanente de HTTP para HTTPS.
+- `--agree-tos` / `-m`: aceita os termos e registra o e-mail de contato usado
+  para avisos de expiracao.
+
+Ao final, o bloco `server` passa a escutar em `443 ssl` e o Certbot cria um
+segundo bloco na porta `80` apenas para redirecionar para HTTPS.
+
+### 4. Renovacao automatica
+
+O certificado Let's Encrypt vale **90 dias**. O pacote instala um timer do
+systemd que renova automaticamente quando faltam ~30 dias. Verifique com:
+
+```bash
+systemctl list-timers | grep certbot
+sudo certbot renew --dry-run
+```
+
+O `--dry-run` simula a renovacao sem gastar o limite de emissoes. Se ele passar,
+a renovacao real vai funcionar sozinha.
+
+### 5. Reforcos recomendados no Nginx
+
+Depois que o Certbot ajustar o bloco `server`, adicione dentro do bloco `443` da
+secao Nginx acima (o Certbot ja inclui as linhas `ssl_certificate`):
+
+```nginx
+# HSTS: forca HTTPS por 1 ano (aplique so depois de confirmar que o site
+# inteiro funciona em HTTPS, pois e dificil de reverter em navegadores).
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+# Limite de upload alinhado com o maximo de imagem (5 MB) + folga.
+client_max_body_size 8M;
+```
+
+Depois recarregue o Nginx:
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+> Lembre de manter `NEXTAUTH_URL=https://seu-dominio.com.br` no `.env` de
+> producao, senao sessoes e callbacks vao apontar para HTTP.
 
 ## Backup
 

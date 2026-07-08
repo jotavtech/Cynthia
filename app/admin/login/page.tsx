@@ -1,9 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { LockKeyhole } from "lucide-react";
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { buttonVariants } from "@/components/ui/button";
+import { LoginForm } from "./login-form";
+
+export const metadata: Metadata = {
+  title: "Login",
+  robots: { index: false, follow: false },
+};
 
 export default function AdminLoginPage() {
   return (
@@ -20,19 +25,9 @@ export default function AdminLoginPage() {
             </h1>
           </div>
         </div>
-        <form className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="admin@example.com" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
-            <Input id="password" type="password" placeholder="************" />
-          </div>
-          <Button className="w-full" disabled>
-            Acesso em preparacao
-          </Button>
-        </form>
+
+        <LoginForm />
+
         <Link
           href="/"
           className={buttonVariants({
