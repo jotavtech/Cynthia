@@ -74,26 +74,38 @@ export function CartView() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                aria-label="Diminuir"
-                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                className="grid size-8 place-items-center rounded-md border hover:bg-stone-50"
-              >
-                <Minus className="size-4" />
-              </button>
-              <span className="w-6 text-center text-sm font-medium">
-                {item.quantity}
-              </span>
-              <button
-                type="button"
-                aria-label="Aumentar"
-                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                className="grid size-8 place-items-center rounded-md border hover:bg-stone-50"
-              >
-                <Plus className="size-4" />
-              </button>
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Diminuir"
+                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                  className="grid size-8 place-items-center rounded-md border hover:bg-stone-50"
+                >
+                  <Minus className="size-4" />
+                </button>
+                <span className="w-6 text-center text-sm font-medium">
+                  {item.quantity}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Aumentar"
+                  disabled={
+                    typeof item.stock === "number" &&
+                    item.quantity >= item.stock
+                  }
+                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  className="grid size-8 place-items-center rounded-md border hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Plus className="size-4" />
+                </button>
+              </div>
+              {typeof item.stock === "number" &&
+              item.quantity >= item.stock ? (
+                <span className="text-[11px] text-stone-400">
+                  Maximo em estoque
+                </span>
+              ) : null}
             </div>
 
             <div className="w-24 text-right font-semibold text-stone-900">

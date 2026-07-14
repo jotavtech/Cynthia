@@ -118,6 +118,7 @@ export default async function ProductDetailPage({
                 name: product.name,
                 price,
                 imageUrl: image?.url,
+                stock: product.stock,
               }}
             />
           </div>

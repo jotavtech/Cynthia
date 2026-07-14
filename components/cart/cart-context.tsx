@@ -8,8 +8,19 @@ export type CartItem = {
   name: string;
   price: number;
   imageUrl?: string;
+  /** Estoque disponivel no momento em que o item foi adicionado. */
+  stock?: number;
   quantity: number;
 };
+
+/** Limita a quantidade ao estoque conhecido (quando houver) e a no minimo 0. */
+function clampQuantity(quantity: number, stock?: number): number {
+  const floored = Math.max(0, Math.floor(quantity));
+  if (typeof stock === "number") {
+    return Math.min(floored, Math.max(0, stock));
+  }
+  return floored;
+}
 
 type CartContextValue = {
   items: CartItem[];
@@ -94,12 +105,17 @@ function addItem(item: Omit<CartItem, "quantity">, quantity = 1) {
     setItems(
       items.map((entry) =>
         entry.id === item.id
-          ? { ...entry, quantity: entry.quantity + quantity }
+          ? {
+              ...entry,
+              // Mantem o estoque mais recente informado pela pagina.
+              stock: item.stock ?? entry.stock,
+              quantity: clampQuantity(entry.quantity + quantity, item.stock),
+            }
           : entry,
       ),
     );
   } else {
-    setItems([...items, { ...item, quantity }]);
+    setItems([...items, { ...item, quantity: clampQuantity(quantity, item.stock) }]);
   }
 }
 
@@ -107,7 +123,9 @@ function updateQuantity(id: string, quantity: number) {
   setItems(
     items
       .map((entry) =>
-        entry.id === id ? { ...entry, quantity: Math.max(0, quantity) } : entry,
+        entry.id === id
+          ? { ...entry, quantity: clampQuantity(quantity, entry.stock) }
+          : entry,
       )
       .filter((entry) => entry.quantity > 0),
   );
