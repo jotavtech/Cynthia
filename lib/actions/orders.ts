@@ -285,6 +285,11 @@ export async function updateOrderStatusAction(
   revalidatePath(`/admin/pedidos/${orderId}`);
   revalidatePath("/admin/produtos");
   revalidatePath("/admin/estoque");
+  // Estoque mudou: atualiza as paginas publicas (ISR) sob demanda.
+  if (wasConsumed !== willConsume) {
+    revalidatePath("/produtos");
+    revalidatePath("/");
+  }
 
   return { success: true };
 }

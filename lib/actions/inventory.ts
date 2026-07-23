@@ -81,5 +81,8 @@ export async function adjustStockAction(
 
   revalidatePath("/admin/estoque");
   revalidatePath("/admin/produtos");
+  // Estoque mudou: atualiza as paginas publicas (ISR) sob demanda.
+  revalidatePath("/produtos");
+  revalidatePath("/");
   return { success: true };
 }

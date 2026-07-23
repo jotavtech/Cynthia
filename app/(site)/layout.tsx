@@ -1,8 +1,10 @@
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 
-// O rodape le as configuracoes da loja no banco; renderiza sob demanda.
-export const dynamic = "force-dynamic";
+// O rodape le as configuracoes da loja no banco. Usa ISR: as paginas filhas
+// definem `revalidate`, e as server actions de configuracoes chamam
+// revalidatePath("/", "layout") para atualizar o rodape sob demanda.
+export const revalidate = 300;
 
 export default function SiteLayout({
   children,

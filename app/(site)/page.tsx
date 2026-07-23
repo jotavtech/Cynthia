@@ -7,7 +7,9 @@ import { getSiteSettings } from "@/lib/settings";
 import { buttonVariants } from "@/components/ui/button";
 import { ProductCard } from "@/components/product/product-card";
 
-export const dynamic = "force-dynamic";
+// ISR: pagina revalidada a cada 5 min e sob demanda quando o admin altera
+// produtos/estoque/configuracoes (revalidatePath nas server actions).
+export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();

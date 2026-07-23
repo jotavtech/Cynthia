@@ -9,7 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { AddToCartButton } from "@/components/product/add-to-cart-button";
 import { ProductGallery } from "@/components/product/product-gallery";
 
-export const dynamic = "force-dynamic";
+// ISR sob demanda: paginas geradas na primeira visita e revalidadas quando o
+// admin altera o produto/estoque. Janela de seguranca de 5 min.
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,

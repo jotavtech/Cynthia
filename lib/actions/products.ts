@@ -141,6 +141,8 @@ export async function saveProductAction(
 
   revalidatePath("/admin/produtos");
   revalidatePath("/produtos");
+  revalidatePath("/");
+  revalidatePath(`/produtos/${slug}`);
   redirect("/admin/produtos");
 }
 
@@ -183,4 +185,5 @@ export async function deleteProductAction(formData: FormData): Promise<void> {
 
   revalidatePath("/admin/produtos");
   revalidatePath("/produtos");
+  revalidatePath("/");
 }
