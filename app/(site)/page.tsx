@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 
@@ -7,6 +8,17 @@ import { buttonVariants } from "@/components/ui/button";
 import { ProductCard } from "@/components/product/product-card";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  const bannerUrl = settings?.heroBannerUrl;
+
+  return {
+    title: settings?.seoTitle ?? undefined,
+    description: settings?.seoDescription ?? undefined,
+    openGraph: bannerUrl ? { images: [{ url: bannerUrl }] } : undefined,
+  };
+}
 
 export default async function Home() {
   const [settings, featured] = await Promise.all([

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -8,6 +7,7 @@ import { getProductBySlug } from "@/lib/catalog";
 import { formatMoney } from "@/lib/money";
 import { Badge } from "@/components/ui/badge";
 import { AddToCartButton } from "@/components/product/add-to-cart-button";
+import { ProductGallery } from "@/components/product/product-gallery";
 
 export const dynamic = "force-dynamic";
 
@@ -23,9 +23,17 @@ export async function generateMetadata({
     return { title: "Produto nao encontrado" };
   }
 
+  const imageUrl = product.images[0]?.url;
+
   return {
     title: product.name,
     description: product.description.slice(0, 160),
+    openGraph: {
+      title: product.name,
+      description: product.description.slice(0, 160),
+      type: "website",
+      ...(imageUrl ? { images: [{ url: imageUrl }] } : {}),
+    },
   };
 }
 
@@ -45,7 +53,6 @@ export default async function ProductDetailPage({
   const compareAtPrice = product.compareAtPrice
     ? Number(product.compareAtPrice)
     : null;
-  const image = product.images[0];
   const outOfStock = product.stock <= 0;
 
   return (
@@ -59,22 +66,7 @@ export default async function ProductDetailPage({
       </Link>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-lg border bg-stone-100">
-          {image ? (
-            <Image
-              src={image.url}
-              alt={image.altText ?? product.name}
-              fill
-              sizes="(max-width: 1024px) 100vw, 500px"
-              className="object-cover"
-              priority
-            />
-          ) : (
-            <div className="grid h-full place-items-center text-sm text-stone-400">
-              Sem imagem
-            </div>
-          )}
-        </div>
+        <ProductGallery images={product.images} productName={product.name} />
 
         <div>
           <div className="flex items-center gap-2">
@@ -117,7 +109,7 @@ export default async function ProductDetailPage({
                 slug: product.slug,
                 name: product.name,
                 price,
-                imageUrl: image?.url,
+                imageUrl: product.images[0]?.url,
                 stock: product.stock,
               }}
             />
